@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class TicketControllerTest {
@@ -34,7 +34,7 @@ class TicketControllerTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(actor));
         when(ticketService.listTickets(actor)).thenReturn(List.of());
 
-        mockMvc.perform(get("/tickets").header("X-User-Id", "1"))
+        mockMvc.perform(get("/api/tickets").header("X-User-Id", "1"))
                 .andExpect(status().isOk())
                 .andExpect(content().json("[]"));
 
@@ -43,7 +43,7 @@ class TicketControllerTest {
 
     @Test
     void rejectsMissingUserHeader() throws Exception {
-        mockMvc.perform(get("/tickets"))
+        mockMvc.perform(get("/api/tickets"))
                 .andExpect(status().isBadRequest());
 
         verifyNoInteractions(userRepository, ticketService);
@@ -51,7 +51,7 @@ class TicketControllerTest {
 
     @Test
     void rejectsNonNumericUserHeader() throws Exception {
-        mockMvc.perform(get("/tickets").header("X-User-Id", "invalid"))
+        mockMvc.perform(get("/api/tickets").header("X-User-Id", "invalid"))
                 .andExpect(status().isBadRequest());
 
         verifyNoInteractions(userRepository, ticketService);
@@ -61,9 +61,40 @@ class TicketControllerTest {
     void returnsNotFoundForUnknownUser() throws Exception {
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/tickets").header("X-User-Id", "99"))
+        mockMvc.perform(get("/api/tickets").header("X-User-Id", "99"))
                 .andExpect(status().isNotFound());
 
+        verifyNoInteractions(ticketService);
+    }
+    @Test
+    void patchAcceptsPartialUpdateButPutRequiresAllFields() throws Exception {
+        User actor = new User();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(actor));
+        mockMvc.perform(patch("/api/tickets/10").header("X-User-Id", "1")
+                        .contentType("application/json").content("{\"title\":\"Updated\"}"))
+                .andExpect(status().isOk());
+        verify(ticketService).updateTicket(actor, 10L, new TicketUpdateRequest("Updated", null, null, null));
+        clearInvocations(ticketService);
+        mockMvc.perform(put("/api/tickets/10").header("X-User-Id", "1")
+                        .contentType("application/json").content("{\"title\":\"Updated\"}"))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(ticketService);
+    }
+
+    @Test
+    void statusEndpointValidatesAndDelegates() throws Exception {
+        User actor = new User();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(actor));
+        mockMvc.perform(patch("/api/tickets/10/status").header("X-User-Id", "1")
+                        .contentType("application/json").content("{\"status\":\"RESOLVED\"}"))
+                .andExpect(status().isOk());
+        verify(ticketService).updateStatus(actor, 10L, com.example.backend.ticket.enums.TicketStatus.RESOLVED);
+        clearInvocations(ticketService);
+        for (String body : List.of("{}", "{\"status\":\"INVALID\"}")) {
+            mockMvc.perform(patch("/api/tickets/10/status").header("X-User-Id", "1")
+                            .contentType("application/json").content(body))
+                    .andExpect(status().isBadRequest());
+        }
         verifyNoInteractions(ticketService);
     }
 }
