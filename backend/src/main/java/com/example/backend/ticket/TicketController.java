@@ -63,10 +63,31 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.updateStatus(actor(userId), id, request.status()));
     }
 
+    @PatchMapping("/{id}/assign")
+    public ResponseEntity<TicketView> assign(
+            @RequestHeader("X-User-Id") Long userId, @PathVariable Long id,
+            @Valid @RequestBody TicketAssignRequest request) {
+        return ResponseEntity.ok(ticketService.assignTicket(actor(userId), request.agentId(), id));
+    }
+
+    @GetMapping("/{id}/history")
+    public ResponseEntity<List<HistoryView>> history(
+            @RequestHeader("X-User-Id") Long userId, @PathVariable Long id) {
+        return ResponseEntity.ok(ticketService.history(id, actor(userId)));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@RequestHeader("X-User-Id") Long userId, @PathVariable Long id) {
+        ticketService.deleteTicket(id, actor(userId));
+        return ResponseEntity.noContent().build();
+    }
+
     private User actor(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
     }
+
+
 
 
 }

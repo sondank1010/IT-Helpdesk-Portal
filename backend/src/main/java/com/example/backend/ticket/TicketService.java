@@ -4,6 +4,7 @@ import com.example.backend.category.Category;
 import com.example.backend.category.CategoryRepository;
 import com.example.backend.ticket.enums.TicketStatus;
 import com.example.backend.user.User;
+import com.example.backend.user.UserRepository;
 import com.example.backend.user.enums.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,8 @@ import java.time.Instant;
 public class TicketService {
     private final TicketRepository ticketRepository;
     private final CategoryRepository categoryRepository;
+    private final TicketHistoryRepository ticketHistoryRepository;
+    private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
     public List<TicketView> listTickets(User actor) {
@@ -44,7 +47,9 @@ public class TicketService {
             ticket.setPriority(request.priority());
         }
 
-        return TicketView.of(ticketRepository.save(ticket));
+        Ticket savedTicket = ticketRepository.save(ticket);
+        log(savedTicket, actor, "CREATED", "Ticket created");
+        return TicketView.of(savedTicket);
     }
 
     @Transactional(readOnly = true)
@@ -64,6 +69,7 @@ public class TicketService {
         if (request.description() != null) ticket.setDescription(request.description());
         if (request.priority() != null) ticket.setPriority(request.priority());
         ticket.setUpdatedAt(Instant.now());
+        log(ticket, actor, "UPDATED", "Ticket information updated");
         return TicketView.of(ticket);
     }
 
@@ -93,7 +99,7 @@ public class TicketService {
             boolean allowed = switch (current) {
                 case NEW -> status == TicketStatus.IN_PROGRESS;
                 case IN_PROGRESS -> status == TicketStatus.RESOLVED;
-                case RESOLVED -> status == TicketStatus.CLOSED || status == TicketStatus.IN_PROGRESS;
+                case RESOLVED -> true;
                 case CLOSED -> false;
             };
             if (!allowed) {
@@ -102,8 +108,46 @@ public class TicketService {
         }
         ticket.setStatus(status);
         ticket.setUpdatedAt(Instant.now());
+        log(ticket, actor, "STATUS_CHANGED", "Status changed from " + current + " to " + status);
         return TicketView.of(ticket);
     }
+
+    @Transactional(readOnly = true)
+    public List<HistoryView> history(Long id,User actor) {
+        visibleTicket(actor, id);
+        return ticketHistoryRepository.findByTicketIdOrderByCreatedAtAsc(id).stream().map(HistoryView::of).toList();
+    }
+
+    @Transactional
+    public void deleteTicket(Long id, User actor) {
+        Ticket ticket = visibleTicket(actor, id);
+        if (actor.getRole() != Role.ADMIN && ticket.getStatus() != TicketStatus.NEW)
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User can delete only NEW tickets");
+        if (actor.getRole() == Role.AGENT) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Agent cannot delete tickets");
+        if(actor.getRole() == Role.USER && !ticket.getCreatedBy().getId().equals(actor.getId()))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User can only delete tickets they created.");
+        ticketHistoryRepository.deleteByTicketId(id);
+        ticketRepository.delete(ticket);
+    }
+
+    @Transactional
+    public TicketView assignTicket(User actor, Long agentId, Long ticketId) {
+        User agent  = userRepository.findById(agentId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agent not found"));
+        Ticket ticket = ticketRepository.findById(ticketId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket not found"));
+        if (actor.getRole() != Role.ADMIN) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin only");
+        if (agent.getRole() != Role.AGENT) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Target user is not an agent");
+        ticket.setAssignedTo(agent);
+        ticket.setUpdatedAt(Instant.now());
+        log(ticket, actor, "ASSIGNED", "Assigned to user #" + agentId);
+        return TicketView.of(ticket);
+    }
+
+
+    private void log(Ticket ticket, User actor, String action, String details) {
+        TicketHistory item = new TicketHistory(); item.setTicket(ticket); item.setActor(actor);
+        item.setAction(action); item.setDetails(details); ticketHistoryRepository.save(item);
+    }
+
 
     private Ticket visibleTicket(User actor, Long ticketId) {
         Ticket ticket = ticketRepository.findById(ticketId)

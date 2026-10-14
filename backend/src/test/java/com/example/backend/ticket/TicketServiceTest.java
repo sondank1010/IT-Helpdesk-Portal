@@ -20,12 +20,13 @@ import static org.mockito.Mockito.*;
 class TicketServiceTest {
     private TicketRepository ticketRepository;
     private TicketService service;
+
     private Ticket ticket;
 
     @BeforeEach
     void setUp() {
         ticketRepository = mock(TicketRepository.class);
-        service = new TicketService(ticketRepository, mock(CategoryRepository.class));
+        service = new TicketService(ticketRepository, mock(CategoryRepository.class), mock(TicketHistoryRepository.class));
         Category category = new Category();
         category.setId(2L);
         category.setName("Hardware");
