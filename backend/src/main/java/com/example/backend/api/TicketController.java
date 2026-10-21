@@ -34,19 +34,11 @@ public class TicketController {
 
     public record AssignRequest(@NotNull Long agentId) { }
 
-    public record TicketView(Long id, String title, String description, Priority priority, TicketStatus status,
-                             Long categoryId, String categoryName, Long createdById, Long assignedToId,
-                             Instant createdAt, Instant updatedAt) {
-        static TicketView of(Ticket t) {
-            return new TicketView(t.getId(), t.getTitle(), t.getDescription(), t.getPriority(), t.getStatus(),
-                    t.getCategory().getId(), t.getCategory().getName(), t.getCreatedBy().getId(),
-                    t.getAssignedTo() == null ? null : t.getAssignedTo().getId(), t.getCreatedAt(), t.getUpdatedAt());
-        }
-    }
+   
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public TicketView create(@Valid @RequestBody CreateTicket r) {
+    public TicketService.TicketView create(@Valid @RequestBody CreateTicket r) {
         return tickets.create(r.title(), r.description(), r.priority(), r.categoryId(), CurrentUser.get());
     }
 

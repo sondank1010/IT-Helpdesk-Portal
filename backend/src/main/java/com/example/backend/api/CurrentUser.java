@@ -1,7 +1,7 @@
 package com.example.backend.api;
 
-import com.example.helpdesk.model.User;
-import com.example.helpdesk.service.BusinessException;
+import com.example.backend.model.User;
+import com.example.backend.service.BusinessException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 

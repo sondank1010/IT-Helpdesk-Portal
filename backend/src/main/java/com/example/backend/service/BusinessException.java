@@ -1,4 +1,4 @@
-package com.example.backend.model;
+package com.example.backend.service;
 
 /**
  * Lỗi nghiệp vụ. Tầng API ánh xạ {@link Kind} sang mã HTTP, nên tầng nghiệp vụ không cần biết về HTTP.
