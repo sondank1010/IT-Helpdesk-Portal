@@ -58,4 +58,9 @@ public class TicketController {
         return tickets.get(id, CurrentUser.get());
     }
 
+    @RequestMapping(path = "/{id}", method = {RequestMethod.PUT, RequestMethod.PATCH})
+    public TicketView update(@PathVariable Long id, @RequestBody UpdateTicket r) {
+        return tickets.update(id, r.title(), r.description(), r.priority(), r.categoryId(), CurrentUser.get());
+    }
+
 }

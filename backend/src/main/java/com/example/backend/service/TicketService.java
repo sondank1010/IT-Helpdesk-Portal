@@ -73,6 +73,39 @@ public class TicketService {
         return TicketView.of(findVisible(id, actor));
     }
 
+    @Transactional
+    public TicketView update(Long id, String title, String description, Priority priority, Long categoryId,
+                             User actor) {
+        Ticket ticket = findVisible(id, actor);
+        if (actor.getRole() == Role.USER && ticket.getStatus() != TicketStatus.NEW) {
+            throw BusinessException.forbidden("User can edit only NEW tickets");
+        }
+        if (actor.getRole() == Role.AGENT && !ticket.isAssignedTo(actor)) {
+            throw BusinessException.forbidden("Only the assigned agent can edit this ticket");
+        }
+        if (title != null) {
+            if (title.isBlank() || title.length() > 200) {
+                throw BusinessException.invalid("title must be 1-200 characters");
+            }
+            ticket.setTitle(title.trim());
+        }
+        if (description != null) {
+            if (description.isBlank()) {
+                throw BusinessException.invalid("description must not be blank");
+            }
+            ticket.setDescription(description.trim());
+        }
+        if (priority != null) {
+            ticket.setPriority(priority);
+        }
+        if (categoryId != null) {
+            ticket.setCategory(findCategory(categoryId));
+        }
+        ticket.touch();
+        record(ticket, actor, "UPDATED", "Ticket details updated");
+        return TicketView.of(ticket);
+    }
+
     private Ticket findVisible(Long id, User actor) {
         Ticket ticket = findTicket(id);
         if (actor.getRole() == Role.USER && !ticket.isOwnedBy(actor)) {
