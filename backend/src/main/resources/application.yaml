@@ -1,11 +1,16 @@
 spring:
-  application:
-    name: backend
+#  autoconfigure:
+#    exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3306/it_support}
-    username: ${DB_USER:root}
-    password: ${DB_PASSWORD:admin}
+    username: ${DB_USER:helpdesk}
+    password: ${DB_PASSWORD:helpdesk}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     open-in-view: false
+#app:
+#  jwt-secret: ${JWT_SECRET:local-demo-secret-change-this-before-deployment-1234567890}
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

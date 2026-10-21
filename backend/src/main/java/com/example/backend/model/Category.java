@@ -1,13 +1,9 @@
-package com.example.backend.category;
+package com.example.backend.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
 
 @Entity
 @Table(name = "categories")
-@Getter
-@Setter
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,4 +12,7 @@ public class Category {
     @Column(nullable = false, unique = true, length = 100)
     private String name;
 
+    public Long getId() { return id; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 }
