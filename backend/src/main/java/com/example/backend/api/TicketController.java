@@ -1,9 +1,11 @@
 package com.example.backend.api;
 
+import com.example.backend.model.PageResult;
 import com.example.backend.model.Priority;
-import com.example.backend.model.Ticket;
 import com.example.backend.model.TicketStatus;
 import com.example.backend.service.TicketService;
+import com.example.backend.service.TicketService.TicketView;
+import com.example.backend.service.TicketService.TicketFilter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -11,8 +13,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.Instant;
 
 @Tag(name = "Ticket")
 @RestController
@@ -34,12 +34,28 @@ public class TicketController {
 
     public record AssignRequest(@NotNull Long agentId) { }
 
-   
+
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public TicketService.TicketView create(@Valid @RequestBody CreateTicket r) {
+    public TicketView create(@Valid @RequestBody CreateTicket r) {
         return tickets.create(r.title(), r.description(), r.priority(), r.categoryId(), CurrentUser.get());
+    }
+
+    @GetMapping
+    public PageResult<TicketView> list(@RequestParam(required = false) TicketStatus status,
+                                       @RequestParam(required = false) Priority priority,
+                                       @RequestParam(required = false) Long categoryId,
+                                       @RequestParam(required = false) Long agentId,
+                                       @RequestParam(defaultValue = "0") int page,
+                                       @RequestParam(defaultValue = "20") int size) {
+        TicketFilter filter = new TicketFilter(status, priority, categoryId, agentId);
+        return tickets.list(filter, page, size, CurrentUser.get());
+    }
+
+    @GetMapping("/{id}")
+    public TicketView get(@PathVariable Long id) {
+        return tickets.get(id, CurrentUser.get());
     }
 
 }
