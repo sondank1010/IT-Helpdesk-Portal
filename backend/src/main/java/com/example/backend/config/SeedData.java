@@ -1,11 +1,11 @@
 // package com.example.backend.config;
 
-// import com.example.helpdesk.model.Category;
-// import com.example.helpdesk.model.Role;
-// import com.example.helpdesk.model.User;
-// import com.example.helpdesk.repository.CategoryRepository;
-// import com.example.helpdesk.repository.UserRepository;
-// import com.example.helpdesk.security.PasswordHasher;
+// import com.example.backend.model.Category;
+// import com.example.backend.model.Role;
+// import com.example.backend.model.User;
+// import com.example.backend.repository.CategoryRepository;
+// import com.example.backend.repository.UserRepository;
+// import com.example.backend.security.PasswordHasher;
 // import java.util.List;
 // import org.springframework.beans.factory.annotation.Value;
 // import org.springframework.boot.CommandLineRunner;

@@ -1,7 +1,7 @@
 package com.example.backend.security;
 
-import com.example.helpdesk.service.AuthService;
-import com.example.helpdesk.service.BusinessException;
+import com.example.backend.service.AuthService;
+import com.example.backend.service.BusinessException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

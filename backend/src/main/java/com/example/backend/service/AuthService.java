@@ -1,12 +1,12 @@
 package com.example.backend.service;
 
-import com.example.helpdesk.model.LoginSession;
-import com.example.helpdesk.model.Role;
-import com.example.helpdesk.model.User;
-import com.example.helpdesk.repository.LoginSessionRepository;
-import com.example.helpdesk.repository.UserRepository;
-import com.example.helpdesk.security.JwtService;
-import com.example.helpdesk.security.PasswordHasher;
+import com.example.backend.model.LoginSession;
+import com.example.backend.model.Role;
+import com.example.backend.model.User;
+import com.example.backend.repository.LoginSessionRepository;
+import com.example.backend.repository.UserRepository;
+import com.example.backend.security.JwtService;
+import com.example.backend.security.PasswordHasher;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

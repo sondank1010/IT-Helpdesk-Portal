@@ -1,6 +1,6 @@
-package com.example.helpdesk.api;
+package com.example.backend.api;
 
-import com.example.helpdesk.service.BusinessException;
+import com.example.backend.service.BusinessException;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

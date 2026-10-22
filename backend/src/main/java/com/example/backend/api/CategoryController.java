@@ -1,7 +1,7 @@
-package com.example.helpdesk.api;
+package com.example.backend.api;
 
-import com.example.helpdesk.service.CategoryService;
-import com.example.helpdesk.service.CategoryService.CategoryView;
+import com.example.backend.service.CategoryService;
+import com.example.backend.service.CategoryService.CategoryView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;

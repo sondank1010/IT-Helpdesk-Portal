@@ -1,7 +1,7 @@
 package com.example.backend.api;
 
-import com.example.helpdesk.service.ProfileService;
-import com.example.helpdesk.service.UserView;
+import com.example.backend.service.ProfileService;
+import com.example.backend.service.UserView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

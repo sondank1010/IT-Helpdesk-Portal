@@ -1,6 +1,6 @@
 package com.example.backend.security;
 
-import com.example.helpdesk.service.BusinessException;
+import com.example.backend.service.BusinessException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;

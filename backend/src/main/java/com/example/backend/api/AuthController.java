@@ -1,8 +1,8 @@
 package com.example.backend.api;
 
-import com.example.helpdesk.service.AuthService;
-import com.example.helpdesk.service.AuthService.Tokens;
-import com.example.helpdesk.service.UserView;
+import com.example.backend.service.AuthService;
+import com.example.backend.service.AuthService.Tokens;
+import com.example.backend.service.UserView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
