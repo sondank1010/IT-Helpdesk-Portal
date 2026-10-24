@@ -5,10 +5,12 @@ import com.example.backend.model.*;
 import com.example.backend.repository.CategoryRepository;
 import com.example.backend.repository.TicketHistoryRepository;
 import com.example.backend.repository.TicketRepository;
+import com.example.backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 
 import static org.hibernate.dialect.SybaseASEDialect.MAX_PAGE_SIZE;
 
@@ -18,11 +20,13 @@ public class TicketService {
     private final TicketRepository ticketRepository;
     private final CategoryRepository categories;
     private final TicketHistoryRepository history;
+    private final UserRepository userRepository;
 
-    public TicketService(TicketRepository ticketRepository, CategoryRepository categories, TicketHistoryRepository history) {
+    public TicketService(TicketRepository ticketRepository, CategoryRepository categories, TicketHistoryRepository history, UserRepository userRepository) {
         this.ticketRepository = ticketRepository;
         this.categories = categories;
         this.history = history;
+        this.userRepository = userRepository;
     }
 
     public record TicketView(Long id, String title, String description, Priority priority, TicketStatus status,
@@ -37,6 +41,11 @@ public class TicketService {
 
     public record TicketFilter(TicketStatus status, Priority priority, Long categoryId, Long agentId) { }
 
+    public record HistoryView(Long id, Long actorId, String action, String details, Instant createdAt) {
+        static HistoryView of(TicketHistory h) {
+            return new HistoryView(h.getId(), h.getActor().getId(), h.getAction(), h.getDetails(), h.getCreatedAt());
+        }
+    }
 
     @Transactional
     public TicketView create(String title, String description, Priority priority, Long categoryId, User actor) {
@@ -116,5 +125,74 @@ public class TicketService {
 
     private Ticket findTicket(Long id) {
         return ticketRepository.findById(id).orElseThrow(() -> BusinessException.notFound("Ticket not found"));
+    }
+
+    private static boolean isAllowedTransition(TicketStatus from, TicketStatus to) {
+        return switch (from) {
+            case NEW -> to == TicketStatus.IN_PROGRESS;
+            case IN_PROGRESS -> to == TicketStatus.RESOLVED;
+            case RESOLVED -> to == TicketStatus.CLOSED || to == TicketStatus.IN_PROGRESS;
+            case CLOSED -> false;
+        };
+    }
+
+
+    @Transactional
+    public TicketView changeStatus(Long id, TicketStatus target, User actor) {
+        Ticket ticket = findVisible(id, actor);
+        TicketStatus current = ticket.getStatus();
+        if (actor.getRole() == Role.USER && !(current == TicketStatus.RESOLVED && target == TicketStatus.CLOSED)) {
+            throw BusinessException.forbidden("User can only close a RESOLVED ticket");
+        }
+        if (actor.getRole() == Role.AGENT && !ticket.isAssignedTo(actor)) {
+            throw BusinessException.forbidden("Only the assigned agent can change status");
+        }
+        if (!isAllowedTransition(current, target)) {
+            throw BusinessException.invalid("Invalid status transition " + current + " -> " + target);
+        }
+        ticket.setStatus(target);
+        ticket.touch();
+        record(ticket, actor, "STATUS_CHANGED", current + " -> " + target);
+        return TicketView.of(ticket);
+    }
+
+    private static void requireAdmin(User actor) {
+        if (actor.getRole() != Role.ADMIN) {
+            throw BusinessException.forbidden("Admin only");
+        }
+    }
+
+    @Transactional
+    public TicketView assign(Long id, Long agentId, User actor) {
+        requireAdmin(actor);
+        Ticket ticket = findTicket(id);
+        User agent = userRepository.findById(agentId).orElseThrow(() -> BusinessException.notFound("Agent not found"));
+        if (agent.getRole() != Role.AGENT) {
+            throw BusinessException.invalid("Target user is not an agent");
+        }
+        ticket.setAssignedTo(agent);
+        ticket.touch();
+        record(ticket, actor, "ASSIGNED", "Assigned to user #" + agentId);
+        return TicketView.of(ticket);
+    }
+
+    /** Xóa hẳn ticket và lịch sử. USER chỉ xóa ticket NEW của mình; AGENT không được xóa. */
+    @Transactional
+    public void delete(Long id, User actor) {
+        Ticket ticket = findVisible(id, actor);
+        if (actor.getRole() == Role.AGENT) {
+            throw BusinessException.forbidden("Agent cannot delete tickets");
+        }
+        if (actor.getRole() == Role.USER && ticket.getStatus() != TicketStatus.NEW) {
+            throw BusinessException.forbidden("User can delete only NEW tickets");
+        }
+        history.deleteByTicketId(id);
+        ticketRepository.delete(ticket);
+    }
+
+    @Transactional(readOnly = true)
+    public List<HistoryView> history(Long id, User actor) {
+        findVisible(id, actor);
+        return history.findByTicketIdOrderByCreatedAtAscIdAsc(id).stream().map(HistoryView::of).toList();
     }
 }

@@ -6,6 +6,7 @@ import com.example.backend.model.TicketStatus;
 import com.example.backend.service.TicketService;
 import com.example.backend.service.TicketService.TicketView;
 import com.example.backend.service.TicketService.TicketFilter;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -13,6 +14,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "Ticket")
 @RestController
@@ -61,6 +64,31 @@ public class TicketController {
     @RequestMapping(path = "/{id}", method = {RequestMethod.PUT, RequestMethod.PATCH})
     public TicketView update(@PathVariable Long id, @RequestBody UpdateTicket r) {
         return tickets.update(id, r.title(), r.description(), r.priority(), r.categoryId(), CurrentUser.get());
+    }
+
+
+    @PatchMapping("/{id}/status")
+    public TicketView changeStatus(@PathVariable Long id, @Valid @RequestBody StatusChange r) {
+        return tickets.changeStatus(id, r.status(), CurrentUser.get());
+    }
+
+
+    @PatchMapping("/{id}/assign")
+    public TicketView assign(@PathVariable Long id, @Valid @RequestBody AssignRequest r) {
+        return tickets.assign(id, r.agentId(), CurrentUser.get());
+    }
+
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        tickets.delete(id, CurrentUser.get());
+    }
+
+
+    @GetMapping("/{id}/history")
+    public List<TicketService.HistoryView> history(@PathVariable Long id) {
+        return tickets.history(id, CurrentUser.get());
     }
 
 }
