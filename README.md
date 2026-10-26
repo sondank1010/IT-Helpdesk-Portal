@@ -41,14 +41,5 @@ ghcr.io/sondank1010/it-helpdesk-portal:sha-<full-commit-sha>
 - `verify` chạy các test nếu có. Hiện repository chưa có test nên build thành công chưa chứng minh ứng dụng kết nối database hay hoạt động đúng.
 - Package mới mặc định private. Không cần đổi public để CI publish.
 
-### Vai trò của Compose và MySQL
-
-Compose tham chiếu image ứng dụng trên GHCR và image `mysql:8.4` riêng.
-Image ứng dụng chỉ chứa Java runtime và JAR, không chứa MySQL server hoặc dữ liệu database.
-File `helpdesk_mysql.sql` được mount vào MySQL để tạo schema khi volume dữ liệu còn mới;
-sửa file SQL không tự cập nhật database trong volume đã được khởi tạo.
-Volume `mysql-data` giữ dữ liệu MySQL qua các lần tạo lại container.
-
-Compose dùng thông tin đăng nhập mẫu cho môi trường local; không cần `.env` cho ví dụ này.
-Ứng dụng kết nối hostname `mysql` trong mạng Compose, không dùng `localhost`.
-CI không chạy Compose, không pull image về máy bạn, và không triển khai hệ thống.
+### Pull về chạy compose không cần môi trường + mysqlserver:
+cd vào thư mục -> docker compose up -d
