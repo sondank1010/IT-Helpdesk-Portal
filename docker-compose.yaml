@@ -1,0 +1,33 @@
+# Optional runtime configuration. The CI workflow does not run Compose.
+services:
+  app:
+    image: ghcr.io/sondank1010/it-helpdesk-portal:latest
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/it_support
+      DB_USER: helpdesk
+      DB_PASSWORD: helpdesk-local-password
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: it_support
+      MYSQL_USER: helpdesk
+      MYSQL_PASSWORD: helpdesk-local-password
+      MYSQL_ROOT_PASSWORD: root-local-password
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./helpdesk_mysql.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_PASSWORD mysql --protocol=TCP -h 127.0.0.1 -u$$MYSQL_USER it_support -e 'SELECT 1 FROM app_users LIMIT 1' >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+volumes:
+  mysql-data:
