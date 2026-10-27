@@ -12,5 +12,7 @@ spring:
 app:
   jwt-secret: ${JWT_SECRET:local-demo-secret-change-this-before-deployment-1234567890}
 springdoc:
+  default-produces-media-type: application/json
+  override-with-generic-response: false
   swagger-ui:
     path: /swagger-ui.html

@@ -6,6 +6,7 @@ import com.example.backend.repository.CategoryRepository;
 import com.example.backend.repository.TicketHistoryRepository;
 import com.example.backend.repository.TicketRepository;
 import com.example.backend.repository.UserRepository;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +31,8 @@ public class TicketService {
     }
 
     public record TicketView(Long id, String title, String description, Priority priority, TicketStatus status,
-                             Long categoryId, String categoryName, Long createdById, Long assignedToId,
+                             Long categoryId, String categoryName, Long createdById,
+                             @Schema(types = {"integer", "null"}, format = "int64", description = "null khi ticket chưa được phân công") Long assignedToId,
                              Instant createdAt, Instant updatedAt) {
         static TicketView of(Ticket t) {
             return new TicketView(t.getId(), t.getTitle(), t.getDescription(), t.getPriority(), t.getStatus(),

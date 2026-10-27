@@ -1,0 +1,897 @@
+openapi: 3.1.0
+info:
+  title: IT Helpdesk API
+  description: "Quản lý ticket hỗ trợ IT: xác thực, hồ sơ, ticket, danh mục. Đăng\
+    \ nhập để lấy accessToken, sau đó nhập token vào nút Authorize."
+  version: "1.0"
+servers:
+- url: http://localhost:8080
+  description: Generated server url
+security:
+- bearerAuth: []
+paths:
+  /api/tickets/{id}:
+    get:
+      tags:
+      - Ticket
+      summary: Xem chi tiết ticket
+      description: USER chỉ được xem ticket của mình.
+      operationId: get
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Thông tin ticket
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TicketView"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags:
+      - Ticket
+      summary: Cập nhật thông tin ticket
+      description: PUT và PATCH đều chỉ sửa các trường khác null. USER chỉ sửa ticket
+        của mình khi còn NEW; AGENT chỉ sửa ticket được giao; ADMIN được sửa mọi ticket.
+      operationId: update
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTicket"
+        required: true
+      responses:
+        "200":
+          description: Ticket sau khi cập nhật
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TicketView"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags:
+      - Ticket
+      summary: Xóa ticket
+      description: USER chỉ xóa ticket NEW của mình; AGENT không được xóa; ADMIN được
+        xóa mọi ticket. Lịch sử ticket cũng bị xóa.
+      operationId: delete
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "204":
+          description: No Content
+    patch:
+      tags:
+      - Ticket
+      summary: Cập nhật thông tin ticket
+      description: PUT và PATCH đều chỉ sửa các trường khác null. USER chỉ sửa ticket
+        của mình khi còn NEW; AGENT chỉ sửa ticket được giao; ADMIN được sửa mọi ticket.
+      operationId: update_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTicket"
+        required: true
+      responses:
+        "200":
+          description: Ticket sau khi cập nhật
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TicketView"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/categories/{id}:
+    put:
+      tags:
+      - Danh mục
+      summary: Admin đổi tên danh mục
+      operationId: rename
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryRequest"
+        required: true
+      responses:
+        "200":
+          description: Danh mục sau khi đổi tên
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryView"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+    delete:
+      tags:
+      - Danh mục
+      summary: Admin xóa danh mục chưa được dùng
+      operationId: delete_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "204":
+          description: No Content
+    patch:
+      tags:
+      - Danh mục
+      summary: Admin đổi tên danh mục
+      operationId: rename_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryRequest"
+        required: true
+      responses:
+        "200":
+          description: Danh mục sau khi đổi tên
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryView"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /api/users/profile:
+    put:
+      tags:
+      - Xác thực
+      summary: Sửa tên hoặc đổi mật khẩu của tài khoản hiện tại
+      description: Chỉ sửa các trường khác null. Đổi mật khẩu cần currentPassword
+        chính xác; newPassword tối thiểu 8 ký tự.
+      operationId: update_2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileUpdate"
+        required: true
+      responses:
+        "200":
+          description: Thông tin tài khoản sau khi cập nhật
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserView"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/tickets:
+    get:
+      tags:
+      - Ticket
+      summary: Lọc và phân trang danh sách ticket
+      description: "USER chỉ xem ticket của mình; AGENT và ADMIN xem tất cả. page\
+        \ bắt đầu từ 0, size mặc định 20."
+      operationId: list
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - NEW
+          - IN_PROGRESS
+          - RESOLVED
+          - CLOSED
+      - name: priority
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - LOW
+          - MEDIUM
+          - HIGH
+          - URGENT
+      - name: categoryId
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int64
+      - name: agentId
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int64
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      responses:
+        "200":
+          description: Trang danh sách ticket
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PageResultTicketView"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags:
+      - Ticket
+      summary: Tạo ticket hỗ trợ IT
+      description: Người tạo được lấy từ tài khoản đăng nhập. Ticket mới có trạng
+        thái NEW.
+      operationId: create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTicket"
+        required: true
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TicketView"
+  /api/categories:
+    get:
+      tags:
+      - Danh mục
+      summary: Danh sách danh mục
+      operationId: list_1
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategoryView"
+      security: []
+    post:
+      tags:
+      - Danh mục
+      summary: Admin thêm danh mục
+      operationId: create_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryRequest"
+        required: true
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryView"
+  /api/auth/register:
+    post:
+      tags:
+      - Xác thực
+      summary: Đăng ký tài khoản vai trò USER
+      operationId: register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+        required: true
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserView"
+      security: []
+  /api/auth/refresh-token:
+    post:
+      tags:
+      - Xác thực
+      summary: Đổi refresh token lấy cặp token mới
+      description: Gửi sessionId và refreshToken từ lần đăng nhập/refresh gần nhất.
+        Refresh token cũ mất hiệu lực sau khi đổi.
+      operationId: refresh
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+        required: true
+      responses:
+        "200":
+          description: Cặp token mới và sessionId
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tokens"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+      security: []
+  /api/auth/logout:
+    post:
+      tags:
+      - Xác thực
+      summary: "Đăng xuất, thu hồi phiên hiện tại"
+      operationId: logout
+      responses:
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "204":
+          description: No Content
+  /api/auth/login:
+    post:
+      tags:
+      - Xác thực
+      summary: "Đăng nhập, nhận access token và refresh token"
+      description: "Access token có hạn 15 phút, phiên refresh token có hạn 7 ngà\
+        y. Dùng accessToken cho nút Authorize."
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+        required: true
+      responses:
+        "200":
+          description: Cặp token và sessionId
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tokens"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+      security: []
+  /api/tickets/{id}/status:
+    patch:
+      tags:
+      - Ticket
+      summary: Đổi trạng thái ticket
+      description: "Luồng: NEW → IN_PROGRESS → RESOLVED → CLOSED; RESOLVED có thể\
+        \ quay lại IN_PROGRESS. USER chỉ đóng ticket RESOLVED của mình; AGENT chỉ\
+        \ xử lý ticket được giao; ADMIN vẫn phải theo luồng trạng thái."
+      operationId: changeStatus
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StatusChange"
+        required: true
+      responses:
+        "200":
+          description: Ticket sau khi đổi trạng thái
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TicketView"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/tickets/{id}/assign:
+    patch:
+      tags:
+      - Ticket
+      summary: Admin phân công ticket cho agent
+      description: agentId phải thuộc tài khoản có vai trò AGENT.
+      operationId: assign
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignRequest"
+        required: true
+      responses:
+        "200":
+          description: Ticket sau khi phân công
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TicketView"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/tickets/{id}/history:
+    get:
+      tags:
+      - Ticket
+      summary: Xem lịch sử thay đổi ticket
+      description: USER chỉ xem lịch sử ticket của mình.
+      operationId: history
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Danh sách lịch sử thay đổi ticket
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HistoryView"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/auth/me:
+    get:
+      tags:
+      - Xác thực
+      summary: Xem tài khoản đang đăng nhập
+      operationId: me
+      responses:
+        "200":
+          description: Thông tin tài khoản hiện tại
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserView"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Thông báo lỗi
+      required:
+      - error
+    UpdateTicket:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        priority:
+          type: string
+          enum:
+          - LOW
+          - MEDIUM
+          - HIGH
+          - URGENT
+        categoryId:
+          type: integer
+          format: int64
+    TicketView:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        description:
+          type: string
+        priority:
+          type: string
+          enum:
+          - LOW
+          - MEDIUM
+          - HIGH
+          - URGENT
+        status:
+          type: string
+          enum:
+          - NEW
+          - IN_PROGRESS
+          - RESOLVED
+          - CLOSED
+        categoryId:
+          type: integer
+          format: int64
+        categoryName:
+          type: string
+        createdById:
+          type: integer
+          format: int64
+        assignedToId:
+          type:
+          - integer
+          - "null"
+          format: int64
+          description: null khi ticket chưa được phân công
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          minLength: 0
+      required:
+      - name
+    CategoryView:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+    ProfileUpdate:
+      type: object
+      properties:
+        fullName:
+          type: string
+          maxLength: 255
+          minLength: 0
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+          maxLength: 2147483647
+          minLength: 8
+    UserView:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        email:
+          type: string
+        fullName:
+          type: string
+        role:
+          type: string
+          enum:
+          - USER
+          - AGENT
+          - ADMIN
+    CreateTicket:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Không được để trống hoặc chỉ chứa khoảng trắng
+          example: Máy in không hoạt động
+          maxLength: 200
+          minLength: 0
+        description:
+          type: string
+          example: Máy in phòng A không nhận lệnh
+          minLength: 1
+        priority:
+          type: string
+          description: Bỏ qua thì dùng MEDIUM
+          enum:
+          - LOW
+          - MEDIUM
+          - HIGH
+          - URGENT
+          example: MEDIUM
+        categoryId:
+          type: integer
+          format: int64
+          description: ID danh mục lấy từ GET /api/categories
+          example: 1
+      required:
+      - categoryId
+      - description
+      - title
+    RegisterRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 190
+          minLength: 0
+        password:
+          type: string
+          maxLength: 2147483647
+          minLength: 8
+        fullName:
+          type: string
+          maxLength: 255
+          minLength: 0
+      required:
+      - email
+      - fullName
+      - password
+    RefreshRequest:
+      type: object
+      properties:
+        sessionId:
+          type: string
+          minLength: 1
+        refreshToken:
+          type: string
+          minLength: 1
+      required:
+      - refreshToken
+      - sessionId
+    Tokens:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        sessionId:
+          type: string
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+        password:
+          type: string
+          minLength: 1
+      required:
+      - email
+      - password
+    StatusChange:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - NEW
+          - IN_PROGRESS
+          - RESOLVED
+          - CLOSED
+      required:
+      - status
+    AssignRequest:
+      type: object
+      properties:
+        agentId:
+          type: integer
+          format: int64
+      required:
+      - agentId
+    PageResultTicketView:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/TicketView"
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        number:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+    HistoryView:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        actorId:
+          type: integer
+          format: int64
+        action:
+          type: string
+        details:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+  responses:
+    BadRequest:
+      description: Dữ liệu không hợp lệ hoặc vi phạm quy tắc nghiệp vụ
+      content:
+        application/json:
+          schema:
+            type: object
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: "Chưa đăng nhập, sai thông tin đăng nhập hoặc token hết hạn/khô\
+        ng hợp lệ"
+      content:
+        application/json:
+          schema:
+            type: object
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: Không có quyền thực hiện thao tác
+      content:
+        application/json:
+          schema:
+            type: object
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Không tìm thấy tài nguyên
+      content:
+        application/json:
+          schema:
+            type: object
+            $ref: "#/components/schemas/ErrorResponse"
+    Conflict:
+      description: Dữ liệu trùng lặp hoặc tài nguyên đang được sử dụng
+      content:
+        application/json:
+          schema:
+            type: object
+            $ref: "#/components/schemas/ErrorResponse"
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

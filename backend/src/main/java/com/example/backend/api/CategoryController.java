@@ -3,6 +3,7 @@ package com.example.backend.api;
 import com.example.backend.service.CategoryService;
 import com.example.backend.service.CategoryService.CategoryView;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -39,20 +40,35 @@ public class CategoryController {
         return categories.list();
     }
 
-    @Operation(summary = "Admin thêm danh mục")
+    @Operation(summary = "Admin thêm danh mục", responses = {
+            @ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden"),
+            @ApiResponse(responseCode = "409", ref = "#/components/responses/Conflict")})
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CategoryView create(@Valid @RequestBody CategoryRequest request) {
         return categories.create(request.name(), CurrentUser.get());
     }
 
-    @Operation(summary = "Admin đổi tên danh mục")
+    @Operation(summary = "Admin đổi tên danh mục", responses = {
+            @ApiResponse(responseCode = "200", description = "Danh mục sau khi đổi tên"),
+            @ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden"),
+            @ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound"),
+            @ApiResponse(responseCode = "409", ref = "#/components/responses/Conflict")})
     @RequestMapping(path = "/{id}", method = {RequestMethod.PUT, RequestMethod.PATCH})
     public CategoryView rename(@PathVariable Long id, @Valid @RequestBody CategoryRequest request) {
         return categories.rename(id, request.name(), CurrentUser.get());
     }
 
-    @Operation(summary = "Admin xóa danh mục chưa được dùng")
+    @Operation(summary = "Admin xóa danh mục chưa được dùng", responses = {
+            @ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden"),
+            @ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound"),
+            @ApiResponse(responseCode = "409", ref = "#/components/responses/Conflict")})
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {

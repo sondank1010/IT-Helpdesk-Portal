@@ -1,6 +1,7 @@
 # Optional runtime configuration. The CI workflow does not run Compose.
 services:
   app:
+    build: ./backend
     image: ghcr.io/sondank1010/it-helpdesk-portal:latest
     ports:
       - "8080:8080"
