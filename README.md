@@ -133,35 +133,38 @@ IT-Helpdesk-Portal/
 
 
 ## Cơ sở dữ liệu
-<img width="1450" height="737" alt="image" src="https://github.com/user-attachments/assets/14609ffb-d696-4ecb-ba55-c2fa80ce441a" />
+
+![alt text](<_diagram 1.jpeg>)
 
 - app_users: Tài khoản người dùng, với role là 1 thuộc User, Admin, Agent.
 - login_sessions: Phiên đăng nhập, 1 id người dùng có thể có nhiều phiên đăng nhập cùng trên các thiết bị khác nhau.
-- tickets, ticket_history, categories: Lưu mỗi yêu cầu (1 ticket) của người dùng lên hệ thống IT Support với các thông tin đi kèm (tình trạng, ngày, mô tả...), và lịch sử ticket, phân loại.
-- attachments, ticket_comments: Bình luận trao đổi và cho phép đính kèm file trong trao đổi.
-- notifications: Mục thông báo gắn liền với mỗi người dùng và quá trình 1 ticket của người dùng được xử lý.
--> Trong quá trình Phase 1, một số trường có thể chưa cần sử dụng để đơn giản hoá nghiệp vụ.
+- tickets: Lưu mỗi yêu cầu (1 ticket) của người dùng lên hệ thống IT Support với các thông tin đi kèm (tình trạng, ngày, mô tả...), và lịch sử ticket, phân loại.
+- tickets_history: Lưu lịch sử (các lần xử lý yêu cầu) của mỗi ticket. Categories phân loại ticket.
 
 ## Yêu cầu khác
 * Xác thực: access token JWT sống 15 phút, refresh token và được xoay vòng mỗi lần làm mới. Logout thu hồi phiên nên access token cũ cũng bị từ chối. <br>
 * Phân quyền: theo vai trò và chủ sở hữu. Bình luận, lịch sử và tệp dùng chung quyền xem với ticket. Agent không được xóa ticket. <br>
 * Giá trị hợp lệ: priority gồm LOW, MEDIUM, HIGH, URGENT, mặc định MEDIUM. Status gồm NEW, IN_PROGRESS, RESOLVED, CLOSED. <br>
-* Phân trang: page bắt đầu từ 0, size mặc định 20, tối đa 100. Response có content, totalElements, totalPages, number, size. <br>
 * Transaction: thay đổi ticket, ghi lịch sử và tạo thông báo nằm trong cùng một transaction. <br>
 * Cấu hình: chuỗi kết nối DB, JWT secret, thư mục upload và tài khoản Admin đầu tiên lấy từ biến môi trường. Danh mục mẫu được tạo khi khởi động. 
 
 ## Kiểm thử Tải Kaggle
-Các kết quả sau chạy đo đạc thu được:
-<img width="1131" height="105" alt="image" src="https://github.com/user-attachments/assets/f5e62187-550b-4210-a3f2-c50b67c7a785" />
-<img width="958" height="832" alt="image" src="https://github.com/user-attachments/assets/91243c09-7ba5-4b88-a1d7-05ad3e0b3a2e" />
-<img width="766" height="823" alt="image" src="https://github.com/user-attachments/assets/ec4b2799-b15d-476e-8842-cb0cebfb8eb1" />
 
-Chạy tại: [KaggleTest](https://www.kaggle.com/code/haaju20/notebook67708c4843)
-Kết luận chính:
-* 10 → 50 user: số user tăng 5 lần, throughput tăng 4 lần. 
-* 50 → 100 user: số user tăng 2 lần, throughput tăng 2 lần, p95 từ 25 ms lên 29 ms 
-* Throughput cao nhất: 78 req/s tại 100 user.
-* Ứng dụng và MySQL chạy chung một máy nên tranh chấp CPU. số liệu dùng để so sánh tương đối giữa các mức tải. Dữ liệu ban đầu ít, nếu là với dữ liệu lớn, truy vấn danh sách có thể chậm hơn.
+* Các kết quả sau chạy đo đạc thu được: <br>
+![alt text](image.png)
+![alt text](image-1.png)
+
+<br>
+
+* Lỗi xuất hiện khi users đồng thời là 500: <br>
+![alt text](image-5.png)
+![alt text](image-6.png)
+
+<br>
+
+Chạy tại: https://www.kaggle.com/code/cvntriu/stresstest2 
+
+
 
 ## Luồng CI đóng gói docker iamge và đẩy lên container registry của github
 
@@ -193,10 +196,11 @@ ghcr.io/sondank1010/it-helpdesk-portal:sha-<full-commit-sha>
 cd vào thư mục -> docker compose up -d -> chạy file compose.yml
 
 ## Đề xuất Phase 2
-- Chịu tải: Qua kiểm thử và kiến trúc nhận thấy chưa rõ ràng nếu số users và requests tăng đột biến thì hệ thống có chạy được ổn định không hay phải có cơ chế xử lý phù hợp để tránh quá tải.
+- Chịu tải: Qua kiểm thử và kiến trúc nhận thấy khi số users và requests tăng đột biến (từ 100 đã có lỗi, 500 lỗi rõ rệt) thì hệ thống lỗi không xử lý được vì quá thời gian.
 - Quá trình (workflow) từ nhận yêu cầu, xử lý yêu cầu đến trả và kết thúc, đọc truy vấn cơ sở dữ liệu cải tiến để hiệu năng tốt hơn.
 - Cải tiến kiến trúc phần mềm cho hợp lý hơn so với việc đang để phân nhiều tầng như trên.
 - Kiểm tra trùng lặp trước khi ghi chưa xử lý được concurrency: authservice.register, category.create.
 - Cập nhật ticket: ticketController nhận cả put và patch -> updateTicket có thể null.
 - Truy vấn, lịch sử, phiên đăng nhập.
+- Chưa phân trang rõ ràng. Khi triển khai frontend, nên để page bắt đầu từ 0, size mặc định 20, tối đa 100.
 - Các cải tiến khác...
