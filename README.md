@@ -1,5 +1,6 @@
 # IT-Helpdesk-Portal
-Bài tập lớn KTPM năm học 2026 - 2027, Nhóm 3 - Ca 3  
+IT Support: Hệ thống gửi và xử lý yêu cầu hỗ trợ sửa chữa IT <br>
+(Bài tập lớn Phase 1 KTPM năm học 2026 - 2027, Nhóm 3 - Ca 3) <br>
 Thành viên:  
 | Thành viên | Mã sinh viên |
 | :---- | :---- |
@@ -9,7 +10,7 @@ Thành viên:
 | Phan Bá Thọ | 23020163 |
 
 ## Tổng quan Bài toán
-* **Helpdesk Management System** là một hệ thống quản lý và xử lý yêu cầu hỗ trợ (support ticket) giữa người dùng và bộ phận hỗ trợ kỹ thuật. Hệ thống cho phép người dùng tạo các yêu cầu hỗ trợ, theo dõi tiến trình xử lý, trao đổi thông tin với nhân viên hỗ trợ, trong khi quản trị viên có thể quản lý người dùng, phân công ticket, theo dõi trạng thái và đánh giá hiệu quả xử lý.
+* **Helpdesk Management System - IT Support** là một hệ thống quản lý và xử lý yêu cầu hỗ trợ (support ticket) giữa người dùng và bộ phận hỗ trợ kỹ thuật. Hệ thống cho phép người dùng tạo các yêu cầu hỗ trợ, theo dõi tiến trình xử lý, trao đổi thông tin với nhân viên hỗ trợ, trong khi quản trị viên có thể quản lý người dùng, phân công ticket, theo dõi trạng thái và đánh giá hiệu quả xử lý.
 * **Mục tiêu:** quản lý yêu cầu hỗ trợ IT từ lúc tiếp nhận, phân công, xử lý đến khi đóng ticket, có lưu vết toàn bộ thay đổi.  
 * **Vai trò:** User tạo và theo dõi ticket của mình. Agent xử lý ticket được giao. Admin phân công quản lý. 
 * **Dữ liệu chính:** tài khoản và vai trò, phiên đăng nhập, danh mục, ticket, bình luận, tệp đính kèm, lịch sử ticket, thông báo.
@@ -58,85 +59,77 @@ Thành viên:
 ## Kiến trúc tổng quan
 * Kiến trúc phân tầng cho backend Spring Boot, kết hợp REST API xử lý yêu cầu, Spring Data JPA truy cập MySQL-JWT xác thực, Docker Compose triển khai. 
 
-Client gọi API
+```text
+Client
+  |
+  | HTTP, REST, JSON
+  v
+Spring Security
+  |-- JWT: Xác thực người dùng
+  |-- Session: Quản lý trạng thái đăng nhập
+  |-- Phân quyền truy cập
+  |
+  v
+API, Controller
+  |-- Auth
+  |-- Ticket
+  |-- Category
+  |-- Tiếp nhận request, kiểm tra dữ liệu đầu vào
+  |
+  v
+Service
+  |-- Xử lý nghiệp vụ
+  |-- Phân công ticket
+  |-- Quản lý trạng thái và lịch sử
+  |-- Kiểm tra quyền
+  |
+  v
+Repository
+  |-- Spring Data JPA
+  |-- Truy vấn và lưu dữ liệu
+  |
+  v
+Model (Entity)
+  |-- Biểu diễn đối tượng nghiệp vụ
+  |-- Ánh xạ đối tượng với bảng dữ liệu bằng JPA
+  |
+  v
+MySQL 8
+  `-- Lưu trữ dữ liệu
+```
 
-   │ HTTP, REST, JSON
-   ▼
-Spring Security (JWT, session: thiết lập quy tắc truy cập; kiểm tra JWT và thiết lập thông tin                                người dùng đã xác thực.)
-   │ 
-   ▼
-  API         (Auth, Ticket, request-response: tiếp nhận request, kiểm tra dữ liệu đầu vào và chuyển xử lý)
-   │ 
-   ▼   
-Service       (Xử lý nghiệp vụ, trạng thái: Phân công, lịch sử, quyền)
-   │ 
-   ▼   
-Repository    (Spring Data JPA: Truy vấn, lưu dữ liệu)
-   │ 
-   ▼   
- Model        (Entity Biểu diễn các đối tượng nghiệp vụ, ánh xạ đối tượng với bảng dữ liệu bằng JPA)
-   │ 
-   ▼   
-MySQL 8 (Lưu trữ)
+* Thư mục
 
-
-
-* Tổ chức dự án:
-
+```text
 IT-Helpdesk-Portal/
-|
-|-- .github/
-|   `-- workflows/
-|       `-- ci.yml  -> GitHub Actions: kiểm thử, đóng gói và xuất bản Docker image
-|           
-|           
-|
-|-- .idea/  
-|      
-|
-|-- backend/
-|   |
-|   |-- src/
-|   |   `-- main/
-|   |       `-- java/com/example/backend/
-|   |           |
-|   |           |-- BackendApplication.java
-|   |           |      
-|   |           |
-|   |           |-- api/   -> Controller xử lý REST API: Auth, Ticket, Category
-|   |           |      
-|   |           |
-|   |           |-- config/  -> Cấu hình Spring Security
-|   |           |      
-|   |           |
-|   |           |-- security/  => JWT, bộ lọc xác thực, xử lý mật khẩu
-|   |           |
-|   |           |-- service/   => Nghiệp vụ xác thực, ticket và danh mục
-|   |           |
-|   |           |-- repository => Truy cập dữ liệu bằng JPA
-|   |           |
-|   |           `-- model/  -> Entity, enum và các đối tượng dữ liệu
-|   |                  
-|   |
-|   |-- pom.xml  -> Thư viện và cấu hình Maven
-|   |      
-|   |
-|   |-- mvnw  -> Maven Wrapper build dự án
-|   |      
-|   |
-|   |-- Dockerfile -> Đóng gói ứng dụng thành Docker image
-|   |      
-|   |
-|   `-- .dockerignore  ->  Quy định các tệp loại trừ khi build image
-|         
-|
-|-- helpdesk_mysql.sql  -> Khai báo cấu trúc cơ sở dữ liệu
-|       
-|
-|-- docker-compose.yaml  -> Khởi chạy Backend và MySQL
-|       
-|
--- README.md    -> Mô tả dự án, nghiệp vụ và API
+├── .github/
+│   └── workflows/
+│       └── ci.yml                  # GitHub Actions: test, build và publish Docker image
+│
+├── .idea/                          # Cấu hình IDE
+│
+├── backend/
+│   ├── src/
+│   │   └── main/
+│   │       └── java/
+│   │           └── com/example/backend/
+│   │               ├── BackendApplication.java
+│   │               ├── api/        # REST API: Auth, Ticket, Category
+│   │               ├── config/     # Cấu hình Spring Security
+│   │               ├── security/   # JWT, authentication filter, xử lý mật khẩu
+│   │               ├── service/    # Xử lý nghiệp vụ
+│   │               ├── repository/ # Truy cập dữ liệu bằng Spring Data JPA
+│   │               └── model/      # Entity, enum và đối tượng dữ liệu
+│   │
+│   ├── pom.xml                     # Thư viện và cấu hình Maven
+│   ├── mvnw                        # Maven Wrapper
+│   ├── Dockerfile                  # Đóng gói ứng dụng thành Docker image
+│   └── .dockerignore               # Các tệp loại trừ khi build image
+│
+├── helpdesk_mysql.sql              # Khai báo cấu trúc cơ sở dữ liệu
+├── docker-compose.yaml             # Khởi chạy Backend và MySQL
+└── README.md                       # Tài liệu dự án, nghiệp vụ và API
+```
 
 
 ## Cơ sở dữ liệu
@@ -148,6 +141,14 @@ IT-Helpdesk-Portal/
 - attachments, ticket_comments: Bình luận trao đổi và cho phép đính kèm file trong trao đổi.
 - notifications: Mục thông báo gắn liền với mỗi người dùng và quá trình 1 ticket của người dùng được xử lý.
 -> Trong quá trình Phase 1, một số trường có thể chưa cần sử dụng để đơn giản hoá nghiệp vụ.
+
+## Yêu cầu khác
+* Xác thực: access token JWT sống 15 phút, refresh token và được xoay vòng mỗi lần làm mới. Logout thu hồi phiên nên access token cũ cũng bị từ chối. <br>
+* Phân quyền: theo vai trò và chủ sở hữu. Bình luận, lịch sử và tệp dùng chung quyền xem với ticket. Agent không được xóa ticket. <br>
+* Giá trị hợp lệ: priority gồm LOW, MEDIUM, HIGH, URGENT, mặc định MEDIUM. Status gồm NEW, IN_PROGRESS, RESOLVED, CLOSED. <br>
+* Phân trang: page bắt đầu từ 0, size mặc định 20, tối đa 100. Response có content, totalElements, totalPages, number, size. <br>
+* Transaction: thay đổi ticket, ghi lịch sử và tạo thông báo nằm trong cùng một transaction. <br>
+* Cấu hình: chuỗi kết nối DB, JWT secret, thư mục upload và tài khoản Admin đầu tiên lấy từ biến môi trường. Danh mục mẫu được tạo khi khởi động. 
 
 ## Kiểm thử Tải Kaggle
 Các kết quả sau chạy đo đạc thu được:
@@ -190,3 +191,9 @@ ghcr.io/sondank1010/it-helpdesk-portal:sha-<full-commit-sha>
 ```
 ### Pull về chạy compose không cần môi trường + mysql-server:
 cd vào thư mục -> docker compose up -d -> chạy file compose.yml
+
+## Đề xuất Phase 2
+- Chịu tải: Qua kiểm thử và kiến trúc nhận thấy chưa rõ ràng nếu số users và requests tăng đột biến thì hệ thống có chạy được ổn định không hay phải có cơ chế xử lý phù hợp để tránh quá tải.
+- Quá trình (workflow) từ nhận yêu cầu, xử lý yêu cầu đến trả và kết thúc, đọc truy vấn cơ sở dữ liệu cải tiến để hiệu năng tốt hơn.
+- Cải tiến kiến trúc phần mềm cho hợp lý hơn so với việc đang để phân nhiều tầng như trên.
+- Các cải tiến khác.
