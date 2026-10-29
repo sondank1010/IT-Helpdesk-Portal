@@ -196,4 +196,7 @@ cd vào thư mục -> docker compose up -d -> chạy file compose.yml
 - Chịu tải: Qua kiểm thử và kiến trúc nhận thấy chưa rõ ràng nếu số users và requests tăng đột biến thì hệ thống có chạy được ổn định không hay phải có cơ chế xử lý phù hợp để tránh quá tải.
 - Quá trình (workflow) từ nhận yêu cầu, xử lý yêu cầu đến trả và kết thúc, đọc truy vấn cơ sở dữ liệu cải tiến để hiệu năng tốt hơn.
 - Cải tiến kiến trúc phần mềm cho hợp lý hơn so với việc đang để phân nhiều tầng như trên.
-- Các cải tiến khác.
+- Kiểm tra trùng lặp trước khi ghi chưa xử lý được concurrency: authservice.register, category.create.
+- Cập nhật ticket: ticketController nhận cả put và patch -> updateTicket có thể null.
+- Truy vấn, lịch sử, phiên đăng nhập.
+- Các cải tiến khác...
