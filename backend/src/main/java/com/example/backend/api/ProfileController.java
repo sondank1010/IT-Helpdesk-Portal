@@ -3,6 +3,7 @@ package com.example.backend.api;
 import com.example.backend.service.ProfileService;
 import com.example.backend.service.UserView;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
@@ -24,7 +25,13 @@ public class ProfileController {
     public record ProfileUpdate(@Size(max = 255) String fullName, String currentPassword,
                                 @Size(min = 8) String newPassword) { }
 
-    @Operation(summary = "Sửa tên hoặc đổi mật khẩu của tài khoản hiện tại")
+    @Operation(summary = "Sửa tên hoặc đổi mật khẩu của tài khoản hiện tại",
+            description = "Chỉ sửa các trường khác null. Đổi mật khẩu cần currentPassword chính xác; newPassword tối thiểu 8 ký tự.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Thông tin tài khoản sau khi cập nhật"),
+                    @ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
+                    @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+                    @ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound")})
     @PutMapping
     public UserView update(@Valid @RequestBody ProfileUpdate request) {
         return profiles.update(CurrentUser.get().getId(), request.fullName(), request.currentPassword(),
