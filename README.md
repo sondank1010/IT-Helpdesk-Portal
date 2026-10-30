@@ -21,7 +21,7 @@ Thành viên:
 * **Xử lý:** Agent chuyển ticket sang IN\_PROGRESS, trao đổi với User qua bình luận, xong thì chuyển RESOLVED.  
 * **Đóng hoặc mở lại:** User xác nhận và đóng ticket RESOLVED. Agent hoặc Admin cũng có thể đóng. Nếu chưa xong, ticket được chuyển lại IN\_PROGRESS.  
 * **Luồng trạng thái:** NEW → IN\_PROGRESS → RESOLVED → CLOSED, cho phép RESOLVED → IN\_PROGRESS. CLOSED là trạng thái cuối, không bình luận được nữa.  
-* **Lưu vết và thông báo:** các thao tác tạo, sửa, đổi trạng thái, gán và bình luận đều ghi lịch sử. Người tạo và Agent được gán nhận thông báo trong ứng dụng khi có thay đổi.
+* **Lưu vết:** các thao tác tạo, sửa, đổi trạng thái, gán và bình luận đều ghi lịch sử. Gán nhận thông báo trong ứng dụng khi có thay đổi.
 
 ## Công nghệ - Phạm vi
 
@@ -196,11 +196,13 @@ ghcr.io/sondank1010/it-helpdesk-portal:sha-<full-commit-sha>
 cd vào thư mục -> docker compose up -d -> chạy file compose.yml
 
 ## Đề xuất Phase 2
-- Chịu tải: Qua kiểm thử và kiến trúc nhận thấy khi số users và requests tăng đột biến (từ 100 đã có lỗi, 500 lỗi rõ rệt) thì hệ thống lỗi không xử lý được vì quá thời gian.
-- Quá trình (workflow) từ nhận yêu cầu, xử lý yêu cầu đến trả và kết thúc, đọc truy vấn cơ sở dữ liệu cải tiến để hiệu năng tốt hơn.
-- Cải tiến kiến trúc phần mềm cho hợp lý hơn so với việc đang để phân nhiều tầng như trên.
-- Kiểm tra trùng lặp trước khi ghi chưa xử lý được concurrency: authservice.register, category.create.
-- Cập nhật ticket: ticketController nhận cả put và patch -> updateTicket có thể null.
-- Truy vấn, lịch sử, phiên đăng nhập.
-- Chưa phân trang rõ ràng. Khi triển khai frontend, nên để page bắt đầu từ 0, size mặc định 20, tối đa 100.
-- Các cải tiến khác...
+
+
+| Vấn đề | Đề xuất giải pháp |
+| :---- | :---- |
+| **Chịu tải:** Hệ thống IT Helpdesk Portal đang chỉ hoạt động tốt ở mức tải rất thấp (10-100 users) nhưng bắt đầu quá tải và suy giảm hiệu năng rõ rệt ở các mức users cao hơn (500 users thì có 101 / 9384 request Timeout - Locust không nhận được phản hồi trong vòng 10s, xem danh mục và xác thực cũng bị chậm).<br><br>**Nguyên nhân:**<br>* Truy vấn database mọi request xác thực: JwtFilter gọi AuthService.authenticate() cho mỗi request có Bearer token, AuthService.java lại truy vấn bằng login_sessions để kiểm tra phiên đăng nhập. Khi tải tăng đây là điểm tranh chấp connection.<br>* TicketService.create() phát sinh nhiều thao tác ghi (lưu ticket, history), TicketRepository.searchPage() dùng nhiều điều kiện lọc tuỳ chọn (is null or) kết hợp phân trang - vừa lấy dữ liệu vừa Count và giảm khả năng tận dụng index, giảm hiệu năng.<br>* application.yaml chưa khai báo maximum-pool-size, đang tự chạy mặc định.<br>* history() trả toàn bộ lịch sử trong một List, không phân trang. | * Cache thông tin session bằng Redis hoặc tối ưu cơ chế auth để giảm truy vấn MySQL.<br>* Tối ưu transaction, truy vấn động và index bộ lọc thực tế, dùng EXPLAIN cho query danh sách và count, hạn chế N+1 query. |
+| Chưa giới hạn số lần đăng nhập, đăng ký: Chưa rate limiting cho các endpoint /auth/login và /register. | Giới hạn request theo tài khoản. |
+| LoginSessionRepository chưa có cơ chế dọn dẹp xoá session hết hạn hoặc bị thu hồi, ProfileService.update() chỉ cập nhật password. | Job định kỳ xoá session hết hạn, revoked hoặc đổi mật khẩu; giới hạn số session đồng thời mỗi tài khoản; thêm index cho expired_at và revoked. |
+| Race Condition: <br>* AuthService kiểm tra existsByEmail() trước khi insert, 2 request đăng ký cùng một email đồng thời có thể cùng vượt qua bước kiểm tra. <br>* Ticket Entity chưa có @Version để kiểm soát xung đột cập nhật. | <br>* unique constraint trong database. <br>* Bổ sung optimistic locking và trả HTTP 409 khi xảy xung đột.|
+| dock-compose.yaml chỉ chạy 1 app container (backend) và 1 MySQL container, toàn bộ tải tập trung vào 1 JVM và 1 MySQL instance trên máy Docker Desktop. | load balancer / resource limit, app healthcheck và migration database để thay đổi SQL khi volume đã tồn tại.|
+
