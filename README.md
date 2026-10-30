@@ -59,6 +59,8 @@ Thành viên:
 ## Kiến trúc tổng quan
 * Kiến trúc phân tầng cho backend Spring Boot, kết hợp REST API xử lý yêu cầu, Spring Data JPA truy cập MySQL-JWT xác thực, Docker Compose triển khai. 
 
+![alt text](Image.drawio.png)
+
 ```text
 Client
   |
